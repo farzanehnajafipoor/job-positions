@@ -7,7 +7,12 @@ import { SkillEntity } from './../entities/skill.entity';
 import 'dotenv/config';
 import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import { StructureAData, StructureBData } from '../dto/types';
+import {
+  CompanyDto,
+  JobDto,
+  StructureAItems,
+  StructureBItems,
+} from '../dto/types';
 
 @Injectable()
 export class FetchJobService {
@@ -41,15 +46,7 @@ export class FetchJobService {
     return skill;
   }
 
-  private async findOrCreateCompany(data: {
-    name: string;
-    industry?: string;
-    website?: string;
-    city?: string;
-    state?: string;
-    remote?: boolean;
-    fullAddress?: string;
-  }): Promise<CompanyEntity> {
+  private async findOrCreateCompany(data: CompanyDto): Promise<CompanyEntity> {
     let company = await this.companyRepo.findOne({
       where: { name: data.name },
     });
@@ -69,23 +66,7 @@ export class FetchJobService {
     return company;
   }
 
-  private async upsertJob(data: {
-    jobKey: string;
-    title: string;
-    company: CompanyEntity;
-    jobType?: string;
-    salaryMin?: number;
-    salaryMax?: number;
-    salaryCurrency?: string;
-    salaryRangeStr?: string;
-    experience?: number;
-    postedDate: Date;
-    skills: string[];
-    city?: string;
-    state?: string;
-    remote?: boolean;
-    fullAddress?: string;
-  }): Promise<JobEntity> {
+  private async upsertJob(data: JobDto): Promise<JobEntity> {
     let job = await this.jobRepo.findOne({
       where: { jobKey: data.jobKey },
       relations: ['skills'],
@@ -107,19 +88,18 @@ export class FetchJobService {
 
     job = await this.jobRepo.save(job);
 
-    const skillEntities: SkillEntity[] = [];
-    for (const skillName of data.skills) {
-      const skill = await this.findOrCreateSkill(skillName);
-      skillEntities.push(skill);
-    }
-    job.skills = skillEntities;
+    job.skills = await Promise.all(
+      data.skills.map((skillName) => this.findOrCreateSkill(skillName)),
+    );
+
     await this.jobRepo.save(job);
+
     return job;
   }
 
-  async ingestStructureA(data: StructureAData): Promise<void> {
+  async ingestStructureA(data: StructureAItems): Promise<void> {
     if (!data?.jobs) {
-      this.logger.error('No jobsList found in structure A response');
+      this.logger.error('No jobs found in structure A response');
       return;
     }
 
@@ -130,17 +110,9 @@ export class FetchJobService {
         fullAddress: job.details.location,
       });
 
-      let salaryMin: number | undefined;
-      let salaryMax: number | undefined;
-      if (job.details.salaryRange) {
-        const match = job.details.salaryRange.match(
-          /\$?(\d+)k?\s*-\s*\$?(\d+)k?/i,
-        );
-        if (match) {
-          salaryMin = parseInt(match[1]) * 1000;
-          salaryMax = parseInt(match[2]) * 1000;
-        }
-      }
+      const { min: salaryMin, max: salaryMax } = this.parseSalaryRange(
+        job.details.salaryRange,
+      );
 
       await this.upsertJob({
         jobKey: job.jobId,
@@ -159,7 +131,7 @@ export class FetchJobService {
     }
   }
 
-  async ingestStructureB(data: StructureBData): Promise<void> {
+  async ingestStructureB(data: StructureBItems): Promise<void> {
     if (!data.data?.jobsList) {
       this.logger.error('No jobsList found in structure B response');
       return;
@@ -198,32 +170,48 @@ export class FetchJobService {
   async fetchAllJobs() {
     try {
       const [dataA, dataB] = await Promise.all([
-        this.fetchFromUrl<StructureAData>(this.url1),
-        this.fetchFromUrl<StructureBData>(this.url2),
+        this.fetchFromUrl<StructureAItems>(this.url1),
+        this.fetchFromUrl<StructureBItems>(this.url2),
       ]);
+
+      if (!dataA || !dataB) {
+        this.logger.error('One or more job data sources failed to fetch.');
+        return;
+      }
 
       await this.ingestStructureA(dataA);
       await this.ingestStructureB(dataB);
     } catch (error) {
       this.logger.error('Error fetching jobs', error);
-      console.log('error', error);
       throw error;
     }
   }
 
-  private async fetchFromUrl<T>(url: string): Promise<T> {
+  private async fetchFromUrl<T>(url: string): Promise<T | null> {
     try {
-      const response$ = this.httpService.get(url);
-      const response = await lastValueFrom(response$);
+      const response = await lastValueFrom(this.httpService.get(url));
       if (response.status !== 200) {
         this.logger.error(
           `Failed to fetch from ${url}, status: ${response.status}`,
         );
+        return null;
       }
       return response.data as T;
     } catch (error) {
       this.logger.error(`Failed to fetch from ${url}`, error);
-      return {} as T;
+      return null;
     }
+  }
+
+  private parseSalaryRange(range?: string): { min?: number; max?: number } {
+    if (!range) return {};
+    const match = range.match(/\$?(\d+)k?\s*-\s*\$?(\d+)k?/i);
+    if (match) {
+      return {
+        min: parseInt(match[1]) * 1000,
+        max: parseInt(match[2]) * 1000,
+      };
+    }
+    return {};
   }
 }

@@ -3,10 +3,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class JobDto {
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @ApiProperty()
-  name: string;
+  name!: string;
 
   @ApiProperty()
   salaryMin?: number;
@@ -15,19 +15,19 @@ export class JobDto {
   salaryMax?: number;
 
   @ApiProperty()
-  companyName: string;
+  companyName!: string;
 }
 
 export class PaginatedJobsDto {
   @ApiProperty({ type: [JobDto] })
-  data: JobDto[];
+  data!: JobDto[];
 
   @ApiProperty()
-  total: number;
+  total!: number;
 
   @ApiProperty()
-  page: number;
+  page!: number;
 
   @ApiProperty()
-  limit: number;
+  limit!: number;
 }

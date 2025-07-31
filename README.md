@@ -9,7 +9,7 @@
 
 # 🧰 Job Listing API (NestJS)
 
-A RESTful API built with **NestJS** to manage and retrieve job listings with powerful filtering, pagination, and documentation support via Swagger.
+A RESTful API built with **NestJS** to fetch job position every morning and retrieve job listings with powerful filtering, pagination, and documentation support via Swagger.
 
 ---
 
@@ -55,6 +55,9 @@ $ npm run test
 $ npm run test:e2e
 
 ```
+The API will be available at http://localhost:3000.
+
+Swagger UI is available at: http://localhost:3000/api
 
 ## Stay in touch
 

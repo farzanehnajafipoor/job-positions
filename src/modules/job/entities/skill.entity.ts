@@ -11,11 +11,11 @@ import { JobEntity } from './job.entity';
 @Unique(['name'])
 export class SkillEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @ManyToMany(() => JobEntity, (job) => job.skills)
-  jobs: JobEntity[];
+  jobs!: JobEntity[];
 }

@@ -1,3 +1,5 @@
+import { CompanyEntity } from '../entities/company.entity';
+
 interface JobLocation {
   city: string;
   state: string;
@@ -20,7 +22,7 @@ interface JobRequirements {
   technologies: string[];
 }
 
-interface JobItemB {
+interface StructureBItem {
   position: string;
   location: JobLocation;
   compensation: JobCompensation;
@@ -29,9 +31,9 @@ interface JobItemB {
   datePosted: string;
 }
 
-export interface StructureBData {
+export interface StructureBItems {
   data?: {
-    jobsList?: Record<string, JobItemB>;
+    jobsList?: Record<string, StructureBItem>;
   };
 }
 
@@ -46,7 +48,7 @@ interface details {
   salaryRange: string;
 }
 
-interface JobItemA {
+interface StructureAItem {
   jobId: string;
   title: string;
   details: details;
@@ -55,6 +57,34 @@ interface JobItemA {
   postedDate: string;
 }
 
-export interface StructureAData {
-  jobs?: JobItemA[];
+export interface StructureAItems {
+  jobs?: StructureAItem[];
+}
+
+export interface CompanyDto {
+  name: string;
+  industry?: string;
+  website?: string;
+  city?: string;
+  state?: string;
+  remote?: boolean;
+  fullAddress?: string;
+}
+
+export interface JobDto {
+  jobKey: string;
+  title: string;
+  company: CompanyEntity;
+  jobType?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  salaryRangeStr?: string;
+  experience?: number;
+  postedDate: Date;
+  skills: string[];
+  city?: string;
+  state?: string;
+  remote?: boolean;
+  fullAddress?: string;
 }

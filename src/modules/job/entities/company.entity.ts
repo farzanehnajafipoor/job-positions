@@ -11,10 +11,10 @@ import { JobEntity } from './job.entity';
 @Unique(['name'])
 export class CompanyEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ nullable: true })
   industry?: string;
@@ -35,5 +35,5 @@ export class CompanyEntity {
   fullAddress?: string;
 
   @OneToMany(() => JobEntity, (job) => job.company)
-  jobs: JobEntity[];
+  jobs!: JobEntity[];
 }

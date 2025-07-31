@@ -14,16 +14,16 @@ import { SkillEntity } from './skill.entity';
 @Unique(['jobKey'])
 export class JobEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  jobKey: string;
+  jobKey!: string;
 
   @Column()
-  title: string;
+  title!: string;
 
   @ManyToOne(() => CompanyEntity, (company) => company.jobs, { eager: true })
-  company: CompanyEntity;
+  company!: CompanyEntity;
 
   @Column({ nullable: true })
   jobType?: string;
@@ -44,12 +44,12 @@ export class JobEntity {
   experience?: number;
 
   @Column({ type: 'timestamptz' })
-  postedDate: Date;
+  postedDate!: Date;
 
   @ManyToMany(() => SkillEntity, (skill) => skill.jobs, {
     eager: true,
     cascade: true,
   })
   @JoinTable()
-  skills: SkillEntity[];
+  skills!: SkillEntity[];
 }
