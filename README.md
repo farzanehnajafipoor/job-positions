@@ -55,6 +55,13 @@ $ npm run test
 $ npm run test:e2e
 
 ```
+Create your local environment file from the example:
+
+```bash
+cp .env.example .env
+
+```
+
 The API will be available at http://localhost:3000.
 
 Swagger UI is available at: http://localhost:3000/api

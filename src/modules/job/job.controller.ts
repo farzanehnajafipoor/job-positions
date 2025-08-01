@@ -14,7 +14,7 @@ export class JobController {
     private readonly jobProvider: JobProvider,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_8AM)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async fetchJobPositions() {
     await this.eventHandler.remindEvent();
   }

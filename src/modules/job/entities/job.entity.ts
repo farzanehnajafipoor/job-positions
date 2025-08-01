@@ -50,6 +50,14 @@ export class JobEntity {
     eager: true,
     cascade: true,
   })
-  @JoinTable()
+  @JoinTable({
+    name: 'job_skills',
+    joinColumn: {
+      name: 'jobId',
+    },
+    inverseJoinColumn: {
+      name: 'skillId',
+    },
+  })
   skills!: SkillEntity[];
 }

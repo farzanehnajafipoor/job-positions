@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JobEntity } from './entities/job.entity';
 import { FilterJobsDto } from './dto/request.dto';
 import { JobDto, PaginatedJobsDto } from './dto/response';
+import * as Sentry from '@sentry/node';
 
 export class JobProvider {
   constructor(
@@ -10,6 +11,7 @@ export class JobProvider {
     private readonly jobRepository: Repository<JobEntity>,
   ) {}
   async findJobs(filter: FilterJobsDto): Promise<PaginatedJobsDto> {
+    try {
     const { jobName, companyName, minSalary, maxSalary, page, limit } = filter;
     const query = this.jobRepository
       .createQueryBuilder('job')
@@ -46,5 +48,9 @@ export class JobProvider {
     }));
 
     return { data, total, page, limit };
+  } catch (error) {
+      Sentry.captureException(error);
+      throw new Error('Failed to fetch jobs');
+    }
   }
 }
