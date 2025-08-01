@@ -12,7 +12,7 @@ export class EventHandlerService {
   async remindEvent() {
     try {
       await this.fetchJobService.fetchAllJobs();
-      this.logger.error('Fetch All Jobs is done');
+      this.logger.log('Fetch All Jobs is done');
       Sentry.captureException('Fetch All Jobs is done');
     } catch (e) {
       this.logger.error('Operation failed. %o', e);
